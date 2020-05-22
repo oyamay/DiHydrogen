@@ -4,6 +4,7 @@
 #include "distconv/util/util_mpi.hpp"
 #include "distconv/runtime.hpp"
 #include "distconv/runtime_cuda.hpp"
+#include "distconv/util/cuda_fp16_half_vector.hpp"
 
 #include <cstdlib>
 #include <cassert>
@@ -108,19 +109,26 @@ inline void nvtx_pop() {
   ELEMENT_TYPE_OP(int)                          \
   ELEMENT_TYPE_OP(long)                         \
   ELEMENT_TYPE_OP(float)                        \
-  ELEMENT_TYPE_OP(double)
+  ELEMENT_TYPE_OP(double)                       \
+  ELEMENT_TYPE_OP(half)
 
 #define LIST_OF_VECTOR2_TYPES                   \
   VECTOR_TYPE_OP(int, int2, 2)                  \
   VECTOR_TYPE_OP(long, long2, 2)                \
   VECTOR_TYPE_OP(float, float2, 2)              \
-  VECTOR_TYPE_OP(double, double2, 2)
+  VECTOR_TYPE_OP(double, double2, 2)            \
+  VECTOR_TYPE_OP(half, dc_half2, 2)
+
+// Here we use dc_half2 instead of half2 defined in cuda_fp16.hpp,
+// because we also define vector arithmetic that would conflict with
+// the CUDA's definitions.
 
 #define LIST_OF_VECTOR4_TYPES                   \
   VECTOR_TYPE_OP(int, int4, 4)                  \
   VECTOR_TYPE_OP(long, long4, 4)                \
   VECTOR_TYPE_OP(float, float4, 4)              \
-  VECTOR_TYPE_OP(double, double4, 4)
+  VECTOR_TYPE_OP(double, double4, 4)            \
+  VECTOR_TYPE_OP(half, dc_half4, 4)
 
 #define LIST_OF_VECTOR_TYPES                    \
   LIST_OF_VECTOR2_TYPES                         \
@@ -278,12 +286,20 @@ template <> constexpr __device__ __forceinline__ float min<float>() {
 template <> constexpr __device__ __forceinline__ double min<double>() {
   return DBL_MIN;
 }
+template <> __device__ __forceinline__ half min<half>() {
+  __half x {(unsigned short) 0xFBFF};
+  return x;
+}
 template <typename T> constexpr __device__ __forceinline__ T max();
 template <> constexpr __device__ __forceinline__ float max<float>() {
   return FLT_MAX;
 }
 template <> constexpr __device__ __forceinline__ double max<double>() {
   return DBL_MAX;
+}
+template <> __device__ __forceinline__ half max<half>() {
+  __half x {(unsigned short) 0x7BFF};
+  return x;
 }
 
 #define ELEMENT_TYPE_OP(B)                      \

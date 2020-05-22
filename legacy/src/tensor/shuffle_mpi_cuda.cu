@@ -465,6 +465,7 @@ void TensorMPICUDAShuffler<DataType>::shuffle(const DataType *src,
 
 INSTANTIATE_SHUFFLE(float)
 INSTANTIATE_SHUFFLE(double)
+INSTANTIATE_SHUFFLE(half)
 INSTANTIATE_SHUFFLE(int)
 INSTANTIATE_SHUFFLE(unsigned)
 INSTANTIATE_SHUFFLE(short)

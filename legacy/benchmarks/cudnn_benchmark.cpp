@@ -995,12 +995,7 @@ void run(int argc, char *argv[]) {
   } else if (cfg.data_type == BenchmarkDataType::DOUBLE) {
     run<NSD, double>(cfg);
   } else if (cfg.data_type == BenchmarkDataType::HALF) {
-#ifdef DISTCONV_ENABLE_FP16
     run<NSD, half>(cfg);
-#else
-    std::cerr << "Error: half precision not supported\n";
-    abort();
-#endif
   } else {
     std::cerr << "Error: Unknown data type\n";
     abort();

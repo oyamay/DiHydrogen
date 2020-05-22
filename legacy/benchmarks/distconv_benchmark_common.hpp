@@ -326,12 +326,10 @@ inline int run_test_with_backend(const BenchmarkConfig<NSD> &cfg, MPI_Comm comm)
   } else if (cfg.data_type == BenchmarkDataType::DOUBLE) {
     return run_test_with_type<NSD, Backend, double, Data<NSD, Backend, double>,
                               Profile<NSD>, Tester<NSD, Backend, double>>(cfg, comm);
-#ifdef DISTCONV_ENABLE_FP16
   } else if (cfg.backend == "CUDNN" &&
              cfg.data_type == BenchmarkDataType::HALF) {
     return run_test_with_type<NSD, Backend, half, Data<NSD, Backend, half>,
                               Profile<NSD>, Tester<NSD, Backend, half>>(cfg, comm);
-#endif
   } else {
     util::MPIPrintStreamError() << "Unknown data type name\n";
     abort();

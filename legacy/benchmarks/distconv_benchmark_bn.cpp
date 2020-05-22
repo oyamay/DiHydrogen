@@ -204,10 +204,10 @@ class Data {
       init_input_tensor(input, input_tensor_seed);
       init_input_tensor(d_output, d_output_tensor_seed);
     }
-    init_tensor_constant(scale, 1);
-    init_tensor_constant(bias, 0);
-    init_tensor_constant(running_mean, 0);
-    init_tensor_constant(running_var, 1);
+    init_tensor_constant(scale, DataType(1.0));
+    init_tensor_constant(bias, DataType(0.0));
+    init_tensor_constant(running_mean, DataType(0.0));
+    init_tensor_constant(running_var, DataType(1.0));
   }
   void dump_input(bool dump_binary) {
     dump_tensor(input, "input_tensor", dump_binary);

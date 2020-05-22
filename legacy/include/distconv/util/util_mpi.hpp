@@ -5,6 +5,7 @@
 
 #include "distconv/util/util.hpp"
 
+#include <cuda_fp16.h>
 #include "mpi.h"
 
 #define DISTCONV_CHECK_MPI(call)                                        \
@@ -71,6 +72,13 @@ MPI_Datatype get_mpi_data_type<float>() {
 template <> inline
 MPI_Datatype get_mpi_data_type<double>() {
   return MPI_DOUBLE;
+}
+
+template <> inline
+MPI_Datatype get_mpi_data_type<half>() {
+  // FIXME: This does not work correctly for collectives with
+  // arithmetic operations (such as all-reduce).
+  return MPI_SHORT;
 }
 
 inline MPI_Comm get_mpi_local_comm(MPI_Comm comm) {

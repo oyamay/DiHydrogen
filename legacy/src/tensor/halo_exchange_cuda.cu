@@ -28,5 +28,15 @@ void HaloExchange<double, CUDAAllocator, Al::MPICUDABackend>::pack_or_unpack(
       buf, is_pack, is_reverse, op);
 }
 
+template <>
+void HaloExchange<half, CUDAAllocator, Al::MPICUDABackend>::pack_or_unpack(
+    int dim, Side side, int width, cudaStream_t stream,
+    void *buf, bool is_pack, bool is_reverse,
+    HaloExchangeAccumOp op) {
+  halo_exchange_cuda::pack_or_unpack<half>(
+      m_tensor, dim, side, width, stream,
+      buf, is_pack, is_reverse, op);
+}
+
 } // namespace tensor
 } // namespace distconv

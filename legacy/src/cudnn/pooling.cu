@@ -121,6 +121,7 @@ void Pooling<cudnn::BackendCUDNN, DataType>::bp_accumulate_sum<Tensor>(
       const tensor::Shape &shape);
 INSTANTIATE_BP_ACCUMULATE_SUM(float)
 INSTANTIATE_BP_ACCUMULATE_SUM(double)
+INSTANTIATE_BP_ACCUMULATE_SUM(half)
 #undef INSTANTIATE_BP_ACCUMULATE_SUM
 
 } // namespace distconv

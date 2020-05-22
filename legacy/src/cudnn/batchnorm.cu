@@ -228,6 +228,7 @@ void channel_sums_and_sqsums(int num_dims, int num_samples, const Tensor &input,
       Tensor<TYPE> &sqsums, cudaStream_t stream);
 INSTANTIATE_CHANNEL_SUMS_AND_SQSUMS(float)
 INSTANTIATE_CHANNEL_SUMS_AND_SQSUMS(double)
+INSTANTIATE_CHANNEL_SUMS_AND_SQSUMS(half)
 #undef INSTANTIATE_CHANNEL_SUMS_AND_SQSUMS
 
 template <typename DataType>
@@ -240,11 +241,15 @@ struct sums_to_statistics_functor {
 
   __device__ void operator()(DataType &global_mean, DataType &global_var,
                              DataType &running_mean, DataType &running_var) {
-    const DataType mean = global_mean / m_num_per_sum;
-    const DataType sqmean = global_var / m_num_per_sum;
+
+    // TODO: Check whether this conversion is correct.
+    const DataType num_per_sum_dt = (unsigned int) m_num_per_sum;
+
+    const DataType mean = global_mean / num_per_sum_dt;
+    const DataType sqmean = global_var / num_per_sum_dt;
     DataType var = sqmean- mean * mean;
     var = var > DataType(0) ? var : DataType(0);
-    var *= m_num_per_sum / (m_num_per_sum - DataType(1));
+    var *= num_per_sum_dt / (num_per_sum_dt - DataType(1));
     global_mean = mean;
     global_var = var;
 
@@ -283,10 +288,15 @@ void sums_to_statistics(index_t num_per_sum, typename TensorType::data_type deca
       cudaStream_t stream);
 INSTANTIATE_SUMS_TO_STATISTICS(float)
 INSTANTIATE_SUMS_TO_STATISTICS(double)
+INSTANTIATE_SUMS_TO_STATISTICS(half)
 #undef INSTANTIATE_SUMS_TO_STATISTICS
 
 __device__ inline float rsqrt(float x) {
   return rsqrtf(x);
+}
+
+__device__ inline half rsqrt(half x) {
+  return hrsqrt(x);
 }
 
 template <int ND, typename DataType>
@@ -490,6 +500,7 @@ void batch_normalization(int num_dims, int num_samples, const TensorType &input,
       TYPE epsilon, cudaStream_t stream);
 INSTANTIATE_BATCH_NORMALIZATION(float)
 INSTANTIATE_BATCH_NORMALIZATION(double)
+INSTANTIATE_BATCH_NORMALIZATION(half)
 #undef INSTANTIATE_BATCH_NORMALIZATION
 
 #ifdef DISTCONV_HAS_NVSHMEM
@@ -678,6 +689,7 @@ void forward_all(int num_dims, const Tensor &input, Tensor &mean, Tensor &var,
       AllreduceNVSHMEM<TYPE> &ar);
 INSTANTIATE_FORWARD(float)
 INSTANTIATE_FORWARD(double)
+INSTANTIATE_FORWARD(half)
 #undef INSTANTIATE_FORWARD
 #endif // DISTCONV_HAS_NVSHMEM
 
@@ -704,7 +716,7 @@ void __global__ backprop1_kernel(const DataType * __restrict__ input,
   const DataType var = global_var[ch_idx];
   const DataType scale = global_scale[ch_idx];
   const DataType inv_stdev = rsqrt(var + epsilon);
-  const DataType dvar_factor = inv_stdev * inv_stdev * inv_stdev / 2;
+  const DataType dvar_factor = inv_stdev * inv_stdev * inv_stdev / (DataType)2;
 
   DataType dscale = DataType(0);
   DataType dbias = DataType(0);
@@ -784,7 +796,7 @@ void __global__ backprop1_opt_kernel(const DataTypeV * __restrict__ input,
   const auto var = global_var[ch_idx];
   const auto scale = global_scale[ch_idx];
   const auto inv_stdev = rsqrt(var + epsilon);
-  const auto dvar_factor = inv_stdev * inv_stdev * inv_stdev / 2;
+  const auto dvar_factor = inv_stdev * inv_stdev * inv_stdev / (DataType)2;
 
   DataType dscale = DataType(0);
   DataType dbias = DataType(0);
@@ -1000,6 +1012,7 @@ void backprop1(int num_dims, int num_samples, const TensorType &input,
       cudaStream_t stream);
 INSTANTIATE_BACKPROP1(float)
 INSTANTIATE_BACKPROP1(double)
+INSTANTIATE_BACKPROP1(half)
 #undef INSTANTIATE_BACKPROP1
 
 template <int ND, typename DataType>
@@ -1028,8 +1041,12 @@ void __global__ backprop2_kernel(const DataType * __restrict__ input,
   const DataType dvar = global_dvar[ch_idx];
 
   const DataType inv_stdev = rsqrt(var + epsilon);
-  const DataType dmean_term = dmean / num_per_sum;
-  const DataType dvar_term = dvar * 2 / (num_per_sum - 1);
+
+  // TODO: Check whether this conversion is correct.
+  const DataType num_per_sum_dt = (unsigned int) num_per_sum;
+
+  const DataType dmean_term = dmean / num_per_sum_dt;
+  const DataType dvar_term = dvar * (DataType)2 / (num_per_sum_dt - (DataType)1);
 
   const index_t channel_size = shape.get_size() / num_channels / num_samples;
 
@@ -1081,8 +1098,12 @@ void __global__ backprop2_opt_kernel(const DataTypeV * __restrict__ input,
   const auto dmean = global_dmean[ch_idx];
   const auto dvar = global_dvar[ch_idx];
   const auto inv_stdev = rsqrt(var + epsilon);
-  const auto dmean_term = dmean / num_per_sum;
-  const auto dvar_term = dvar * 2 / (num_per_sum - 1);
+
+  // TODO: Check whether this conversion is correct.
+  const DataType num_per_sum_dt = (unsigned int) num_per_sum;
+
+  const auto dmean_term = dmean / num_per_sum_dt;
+  const auto dvar_term = dvar * (DataType)2 / (num_per_sum_dt - (DataType)1);
 
   const auto num_threads_per_channel = blockDim.x * gridDim.x;
 
@@ -1233,6 +1254,7 @@ void backprop2(int num_dims, index_t num_samples, index_t num_per_sum,
       TYPE epsilon, cudaStream_t stream);
 INSTANTIATE_BACKPROP2(float)
 INSTANTIATE_BACKPROP2(double)
+INSTANTIATE_BACKPROP2(half)
 #undef INSTANTIATE_BACKPROP2
 
 } // namespace batchnorm

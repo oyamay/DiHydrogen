@@ -73,6 +73,7 @@ struct CastScaleBiasFuctor {
 
 DEFINE_CLEAR_HALO(float)
 DEFINE_CLEAR_HALO(double)
+DEFINE_CLEAR_HALO(half)
 DEFINE_CLEAR_HALO(int)
 
 #undef DEFINE_CLEAR_HALO
@@ -85,6 +86,7 @@ DEFINE_CLEAR_HALO(int)
 
 DEFINE_SCALE(float)
 DEFINE_SCALE(double)
+DEFINE_SCALE(half)
 DEFINE_SCALE(int)
 
 #undef DEFINE_SCALE
@@ -102,6 +104,8 @@ DEFINE_CAST(float, short)
 DEFINE_CAST(float, unsigned short)
 DEFINE_CAST(double, short)
 DEFINE_CAST(double, unsigned short)
+DEFINE_CAST(half, short)
+DEFINE_CAST(half, unsigned short)
 #undef DEFINE_CAST
 
 #define DEFINE_CAST_SCALE_BIAS(T1, T2) \
@@ -121,6 +125,9 @@ DEFINE_CAST_SCALE_BIAS(float, unsigned short)
 DEFINE_CAST_SCALE_BIAS(double, double)
 DEFINE_CAST_SCALE_BIAS(double, short)
 DEFINE_CAST_SCALE_BIAS(double, unsigned short)
+DEFINE_CAST_SCALE_BIAS(half, double)
+DEFINE_CAST_SCALE_BIAS(half, short)
+DEFINE_CAST_SCALE_BIAS(half, unsigned short)
 #undef DEFINE_CAST_SCALE_BIAS
 
 
@@ -312,6 +319,7 @@ int Slice(Tensor<DataType, LocaleMPI, CUDAAllocator> &t_dest1,
                   cudaStream_t s);
 DEFINE_CONCATENATE(float)
 DEFINE_CONCATENATE(double)
+DEFINE_CONCATENATE(half)
 DEFINE_CONCATENATE(int)
 DEFINE_CONCATENATE(long)
 #undef DEFINE_CONCATENATE
