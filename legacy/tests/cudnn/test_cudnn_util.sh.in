@@ -23,7 +23,7 @@ TENSOR_NAMES=(input_tensor filter_tensor output_tensor bias_tensor
 # Return nvprof command and its arguments from a given experiment name.
 function get_nvprof_cmd() {
     experiment_name=$1
-    return "nvprof -o nvprof_${experiment_name}_%q{OMPI_COMM_WORLD_RANK}.nvprof"
+    echo "nvprof -o nvprof_${experiment_name}_%q{OMPI_COMM_WORLD_RANK}.nvprof"
 }
 
 # Add the "_dc" prefix to all the tensor data files in the current
